@@ -11,6 +11,7 @@ def on_message(client, userdata, msg):
     m = msg.payload.decode("utf-8")
 
     if(topic == "join"):
+        global nodes
         m = int(m) # é um node id, converte pra int
         nodes = np.unique(np.append(nodes, m))  #insere no array de nós, o unique retira repetidos
     # else
