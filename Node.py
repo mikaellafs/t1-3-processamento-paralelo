@@ -7,6 +7,9 @@ from time import sleep
 nodes = np.array([])  # para guardar os nodesId
 ack_nodes = np.array([])  # para guardar os nós prontos
 
+def check_interval(k):
+    k = int(k)
+    return k > ant and k <= suc  #checa se esta dentro do intervalo de responsabilidade
 
 def on_message(client, userdata, msg):
     topic = msg.topic
@@ -20,10 +23,14 @@ def on_message(client, userdata, msg):
         global ack_nodes
         m = int(m)  # é um node id, converte pra int
         ack_nodes = np.unique(np.append(ack_nodes, m))  # o nó em questao que fez o ack esta pronto
-    # else
-    # se topic = put ou get fazer:
-    # client.publish("putOk", True)  --- sei la o que retornar??
-    # client.publish("getOk", hashTable[int(m)]) --se tiver dentro da faixa de posicoes que ele ta responsavel
+    elif topic == "put":
+        key, value = m.split(" ", 1)    # é uma mensagem com "chave string"
+        if check_interval(key):
+            hashTable[key] = value
+            client.publish("ack-put", "supimpa") # o que mandar de volta??
+    else: #get
+        if check_interval(m):  # recebe uma chave
+            client.publish("res-get", hashTable[int(m)])
 
 
 rangeAddr = 2 ** 32
