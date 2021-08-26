@@ -8,12 +8,14 @@ total_nodes = 3       # total de nós na DHT
 nodes = np.array([])  # para guardar os nodesId
 ack_nodes = np.array([])  # para guardar os nós prontos
 
+
 def check_interval(k):
     k = int(k)
-    if index == 0: # se é o primeiro nó do intervalo, seu antecessor possui nodeId menor que o seu
-        return (k > nodes[ant] and k<rangeAddr) or (k>0 and k <= nodes[index])
+    if index == 0:  # se é o primeiro nó do intervalo, seu antecessor possui nodeId menor que o seu
+        return (nodes[ant] < k < rangeAddr) or (0 < k <= nodes[index])
 
-    return k > nodes[ant] and k <= nodes[index]  #checa se esta dentro do intervalo de responsabilidade
+    return nodes[ant] < k <= nodes[index]  # checa se esta dentro do intervalo de responsabilidade
+
 
 def on_message(client, userdata, msg):
     topic = msg.topic
@@ -23,21 +25,25 @@ def on_message(client, userdata, msg):
         global nodes
         m = int(m)  # é um node id, converte pra int
         nodes = np.unique(np.append(nodes, m))  # insere no array de nós, o unique retira repetidos
+
     elif topic == "ack-join":
         global ack_nodes
         m = int(m)  # é um node id, converte pra int
         ack_nodes = np.unique(np.append(ack_nodes, m))  # o nó em questao que fez o ack esta pronto
+
     elif topic == "put":
-        key, value = m.split(" ", 1)    # é uma mensagem com "chave string"
+        key, value = m.split(" ", 1)  # é uma mensagem com "chave string"
         if check_interval(key):
             hashTable[key] = value
-            client.publish("ack-put", "supimpa") # o que mandar de volta??
+            client.publish("ack-put", str(nodeID))
             print("Valor %s armazenado com sucesso na chave." % value, key)
         
-    else: #get
+    else:  # get
         if check_interval(m):  # recebe uma chave
-            client.publish("res-get", hashTable[int(m)])
-            print("Valor %s retornado da chave %s." % value, key)
+            key = int(m)
+            value = hashTable[key]
+            client.publish("res-get", value)
+            print("Valor %s retornado da chave %s." % (value, key))
 
 
 rangeAddr = 2 ** 32
@@ -72,7 +78,8 @@ while nodes.size < total_nodes or ack_nodes.size < total_nodes:  # enquanto nao 
 nodes.sort()
 index = np.where(nodes == nodeID)[0][0]
 ant, suc = (index - 1, index + 1)  # antecessor e sucessor
-if suc == total_nodes: suc = 0
+if suc == total_nodes:
+    suc = 0
 
 print("Pronto! Intervalo de responsabilidade: (", int(nodes[ant]), ",", int(nodes[index]), "]")
 # Se inscreve no topico put e get
