@@ -4,12 +4,16 @@ import sys
 import numpy as np
 from time import sleep
 
+total_nodes = 3       # total de nós na DHT
 nodes = np.array([])  # para guardar os nodesId
 ack_nodes = np.array([])  # para guardar os nós prontos
 
 def check_interval(k):
     k = int(k)
-    return k > ant and k <= suc  #checa se esta dentro do intervalo de responsabilidade
+    if index == 0: # se é o primeiro nó do intervalo, seu antecessor possui nodeId menor que o seu
+        return (k > nodes[ant] and k<rangeAddr) or (k>0 and k <= nodes[index])
+
+    return k > nodes[ant] and k <= nodes[index]  #checa se esta dentro do intervalo de responsabilidade
 
 def on_message(client, userdata, msg):
     topic = msg.topic
@@ -28,9 +32,12 @@ def on_message(client, userdata, msg):
         if check_interval(key):
             hashTable[key] = value
             client.publish("ack-put", "supimpa") # o que mandar de volta??
+            print("Valor %s armazenado com sucesso na chave." % value, key)
+        
     else: #get
         if check_interval(m):  # recebe uma chave
             client.publish("res-get", hashTable[int(m)])
+            print("Valor %s retornado da chave %s." % value, key)
 
 
 rangeAddr = 2 ** 32
@@ -49,26 +56,28 @@ print("Node_%s conectado ao broker." % sys.argv[1], "ID: " + str(nodeID))
 client.subscribe("join")
 client.subscribe("ack-join")
 client.on_message = on_message
+client.loop_start()
 
 print("Preparando para receber mensagens...")
 # Publica seu nodeID no topic "join"
-while nodes.size < 8 or ack_nodes.size < 8:  # enquanto nao esta pronto ou os outros nós nao estao
+while nodes.size < total_nodes or ack_nodes.size < total_nodes:  # enquanto nao esta pronto ou os outros nós nao estao
     client.publish("join", nodeID)
 
-    if nodes.size == 8:  # nó está pronto, logo avisa aos outros
+    if nodes.size == total_nodes:  # nó está pronto, logo avisa aos outros
         client.publish("ack-join", nodeID)
 
     sleep(0.5)  # espera um tempo
 
 # Obtem antecessor e sucessor
 nodes.sort()
-index = np.where(nodes == nodeID)
+index = np.where(nodes == nodeID)[0][0]
 ant, suc = (index - 1, index + 1)  # antecessor e sucessor
-if suc == 8: suc = 0
+if suc == total_nodes: suc = 0
 
-print("Pronto!")
+print("Pronto! Intervalo de responsabilidade: (", int(nodes[ant]), ",", int(nodes[index]), "]")
 # Se inscreve no topico put e get
 client.subscribe("put")
 client.subscribe("get")
 
-client.loop_forever()
+while True: 
+    continue
