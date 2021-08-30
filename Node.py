@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from time import sleep
 
-total_nodes = 3       # total de nós na DHT
+total_nodes = 8       # total de nós na DHT
 nodes = np.array([])  # para guardar os nodesId
 ack_nodes = np.array([])  # para guardar os nós prontos
 
@@ -52,11 +52,16 @@ nodeID = randrange(0, rangeAddr)
 
 mqttBroker = "127.0.0.1"
 
+if len(sys.argv) >1:
+    name = sys.argv[1]
+else:
+    name = nodeID
+
 # Conecta ao broker mqtt
-client = mqtt.Client("Node_%s" % sys.argv[1])  # passar como parametro o nome/numero do nó
+client = mqtt.Client("Node_%s" % name)  # passar como parametro o nome/numero do nó
 while client.connect(mqttBroker) != 0:
     sleep(0.1)
-print("Node_%s conectado ao broker." % sys.argv[1], "ID: " + str(nodeID))
+print("Node_%s conectado ao broker." % name, "ID: " + str(nodeID))
 
 # Se inscreve para receber os outros 7 nodeID's
 client.subscribe("join")
