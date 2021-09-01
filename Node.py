@@ -34,16 +34,17 @@ def on_message(client, userdata, msg):
     elif topic == "put":
         key, value = m.split(" ", 1)  # é uma mensagem com "chave string"
         if check_interval(key):
+            key = int(key)
             hashTable[key] = value
             client.publish("ack-put", str(nodeID))
-            print("Valor %s armazenado com sucesso na chave." % value, key)
+            print("Valor %s armazenado com sucesso na chave %s." % (value, str(key)))
         
     else:  # get
         if check_interval(m):  # recebe uma chave
             key = int(m)
             value = hashTable[key]
             client.publish("res-get", value)
-            print("Valor %s retornado da chave %s." % (value, key))
+            print("Valor %s retornado da chave %s." % (value, str(key)))
 
 
 rangeAddr = 2 ** 32
@@ -52,7 +53,7 @@ nodeID = randrange(0, rangeAddr)
 
 mqttBroker = "127.0.0.1"
 
-if len(sys.argv) >1:
+if len(sys.argv) > 1:
     name = sys.argv[1]
 else:
     name = nodeID
