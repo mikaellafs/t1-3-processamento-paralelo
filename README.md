@@ -10,8 +10,9 @@ Ao ser inicializado, o nó da DHT deve avisar aos outros por meio do publish de 
 
 O cliente gera 100 chaves aleatórias e as utiliza para inserir 100 strings aleatórias na DHT, publicando mensagens no tópico "put". Após recebimento das mensagens de confirmação — publicadas no tópico "ack-put" pelo nó responsável por armazenar o valor inserido, — o cliente resgata os mesmos valores utilizando apenas as 100 chaves geradas, publicando mensagens no tópico "get" e recebendo os valores por mensagens de tópico "res-get".
 
-## Pre-requisitos
+## Pré-requisitos
 ```
+sudo apt-get install mosquitto
 pip3 install paho-mqtt
 pip3 install numpy
 pip3 install Django
@@ -33,3 +34,12 @@ O cliente é executado da seguinte maneira:
 ```
 python3 Cliente.py
 ```
+
+## Automatização
+
+Para iniciar todos os nós em background, execute o script runAllNodes.sh
+
+```
+bash runAllNodes.sh <num_nodes>
+```
+Substituindo <num_nodes> pela quantidade de nós que deseja iniciar. Não é um argumento obrigatório, caso não seja informado, 8 nós serão criados. Você pode conferir os logs dos nós no arquivo log.txt gerado.
