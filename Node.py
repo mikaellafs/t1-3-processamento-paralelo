@@ -12,7 +12,7 @@ ack_nodes = np.array([])  # Para guardar os nós prontos
 def check_interval(k):
     k = int(k)
     if index == 0:  # Se é o primeiro nó do intervalo, seu antecessor possui nodeID menor que o seu
-        return (nodes[ant] < k < rangeAddr) or (0 < k <= nodes[index])
+        return (nodes[ant] < k <= rangeAddr) or (0 <= k <= nodes[index])
 
     return nodes[ant] < k <= nodes[index]  # Checa se esta dentro do intervalo de responsabilidade
 
